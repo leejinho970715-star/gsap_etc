@@ -383,3 +383,106 @@ function changeBg(imgUrl){
     }
   })
 }
+
+//가로 스크롤 섹션에서 실제로 옆으로 움직여야 되는 거리를 계산
+//track 전체 너비에서 화면에 이미 보이는 너비를 빼면 이동 거리만 남음
+function totalWidth(){
+  const wrap = document.querySelector('.horizontal_section');
+  const track = document.querySelector('.track');
+
+  // 필요한 요소가 없으면 이동 거리도 0으로 처리한다.
+  if (!wrap || !track) return 0;
+
+  // 전체 트랙 너비에서 현재 화면에 보이는 너비를 빼서 이동할 거리만 남긴다.
+  return Math.max(0, track.scrollWidth - wrap.clientWidth);
+}
+
+//horizontal_section은 세로 스크롤을 가로 이동으로 바꿔서 보여줍니다.
+const horizontalTween = gsap.to('.track',{
+  //트랙을 왼쪽으로 이동시켜 오른쪽 카드들이 보이게 할 것
+  x: () => -totalWidth(),
+  ease : 'none',
+  scrollTrigger:{
+    trigger: '.horizontal_section',
+    start: 'top top',
+    //실제 이동 거리보다 더 길게 잡아 앞뒤 여백 스크롤을 만든다.
+    end: () => '+=' + (totalWidth() + window.innerWidth * 1.45),
+    scrub: true,
+    pin:true,
+    // pin 시작 튐을 줄인다.
+    anticipatePin: 1,
+    // 리사이즈 때 이동 거리를 다시 계산한다.
+    invalidateOnRefresh: true,
+    // 내려갈 때만 진행하고 역방향 상태는 scrub이 처리한다.
+    toggleActions: 'play none none reset',
+  }
+});
+
+// 케이스 이미지가 모두 같은 방식으로 나오면 지루해서, 여러 등장 방식을 돌려쓴다.
+const imageMotionPresets = [
+  {
+    x: 0,
+    y: 96,
+    scale: 0.86,
+    rotate: -8,
+    filter: 'blur(10px)',
+    duration: 0.9,
+    ease: 'power3.out',
+  },
+  {
+    x: 120,
+    y: 34,
+    scale: 0.92,
+    rotate: 9,
+    filter: 'blur(8px)',
+    duration: 1,
+    ease: 'back.out(1.25)',
+  },
+  {
+    x: -96,
+    y: 70,
+    scale: 1.08,
+    rotate: -12,
+    filter: 'blur(12px)',
+    duration: 0.95,
+    ease: 'power2.out',
+  },
+  {
+    x: 24,
+    y: -76,
+    scale: 0.9,
+    rotate: 11,
+    filter: 'blur(14px)',
+    duration: 1.05,
+    ease: 'expo.out',
+  },
+];
+const imageMotionOffset = Math.floor(Math.random() * imageMotionPresets.length);
+
+//각 case_panel 안에서 텍스트는 순서대로, 이미지는 서로 다른 방향에서 등장
+document.querySelectorAll('.case_panel').forEach((article,index)=>{
+ const copyItems = article.querySelectorAll('.case_kicker,.case_copy h2,.case_copy p,.case_meta li');
+ const caseImages = article.querySelectorAll('.case_image');
+
+ gsap.fromTo(copyItems,{
+  y:36,
+  opacity:0,
+ },{
+  y:0,
+  opacity:1,
+  stagger:0.08,
+  duration:0.3,
+  ease: 'power2.out',
+  scrollTrigger: {
+      // 현재 패널을 기준으로 등장 타이밍을 잡는다.
+      trigger: panel,
+      // 가로 스크롤 애니메이션 안에서 위치를 계산한다.
+      containerAnimation: horizontalTween,
+      // 패널 왼쪽이 화면 70% 지점에 오면 시작한다.
+      start: 'left 70%',
+      // 다시 왼쪽으로 벗어나면 되감기만 한다.
+      toggleActions: 'play none none reverse',
+    },
+ })
+
+})
