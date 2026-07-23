@@ -485,4 +485,22 @@ document.querySelectorAll('.case_panel').forEach((article,index)=>{
     },
  })
 
+ //패널 안의 이미지들을 하나씩 다른 perset으로 등장 
+ caseImages.forEach((image,index)=>{
+  // 랜덤 시작점과 패널/이미지 순서를 섞어 사용할 preset 번호를 만든다.
+    const presetIndex = (imageMotionOffset + articleIndex + imageIndex) % imageMotionPresets.length;
+    // 실제로 적용할 모션 preset을 꺼낸다.
+    const preset = imageMotionPresets[presetIndex];
+    // CSS에 이미 잡힌 기본 회전값을 읽어둔다.
+    const baseRotate = parseFloat(gsap.getProperty(caseImage, 'rotate')) || 0;
+
+    gsap.fromTo(caseImage,{
+      x:preset.x,
+      y:preset.y,
+      opacity:0,
+      scale:preset.scale,
+      rotate:baseRotate +preset.rotate,
+      filter:preset.filter, 
+    })
+ })
 })
